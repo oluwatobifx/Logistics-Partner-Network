@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lease a Truck — LogiFlow</title>
+  <meta name="description" content="Lease a truck from a partner company, specify your goods, route and duration, and get an instant price and tracking ID." />
+  <meta name="theme-color" content="#1463ff" />
+  <meta property="og:title" content="Lease a Truck — LogiFlow" />
+  <meta property="og:description" content="Lease a truck from a partner company, specify your goods, route and duration, and get an instant price and tracking ID." />
+  <meta property="og:type" content="website" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body data-page="lease">
+  <header class="nav">
+    <div class="wrap nav-in">
+      <a href="/" class="logo" aria-label="LogiFlow home"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="#1463ff"/><path d="M8.5 12.5c3.5-4 11.5-4 15 0M8.5 19.5c3.5 4 11.5 4 15 0" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/><circle cx="16" cy="16" r="3.2" fill="#fff"/></svg>LogiFlow</a>
+      <nav class="nav-links" aria-label="Main">
+        <a href="/">Home</a>
+        <a href="/trucks">Find Trucks</a>
+        <a href="/track">Track</a>
+        <a href="/list-truck">List a Truck</a>
+        <a href="/lease" class="btn btn-primary mobile-cta">Get Started <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
+      </nav>
+      <div class="nav-right">
+        <a href="/lease" class="btn btn-primary btn-sm">Get Started</a>
+        <button class="menu-btn" aria-label="Open menu" aria-expanded="false"><span></span><span></span><span></span></button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="page-hero">
+      <div class="wrap">
+        <span class="eyebrow">Lease a truck</span>
+        <h1>Book a truck and get an instant quote</h1>
+        <p class="lead">Tell us who you are, what you’re moving and where it’s going. You’ll get a tracking ID as soon as you book.</p>
+      </div>
+    </section>
+    <section class="section" style="padding-top:8px">
+      <div class="wrap">
+        <div id="lease-wrap" class="lease-grid">
+          <div class="panel">
+            <h2>Shipment &amp; lease details</h2>
+            <p>Fields marked * are required.</p>
+            <form class="form" id="lease-form" novalidate>
+              <div class="fieldset-title" style="border:0;padding-top:0;margin-top:0">Your company</div>
+              <div class="row">
+                <label>Company name *<input name="company" autocomplete="organization" placeholder="e.g. MedPlus Pharma Wholesale" /></label>
+                <label>Email *<input name="email" type="email" autocomplete="email" placeholder="logistics@company.com" /></label>
+              </div>
+              <div class="row">
+                <label><span>Phone <small>(optional)</small></span><input name="phone" type="tel" autocomplete="tel" placeholder="+234 800 000 0000" /></label>
+                <label>Purpose of shipment *<input name="purpose" placeholder="e.g. Restocking our Abuja warehouse" /></label>
+              </div>
+
+              <div class="fieldset-title">Goods</div>
+              <div class="row">
+                <label>Type of goods *<select name="goods" id="goods"></select></label>
+                <label><span>Total weight <small>(tonnes)</small></span><input name="weight" id="weight" type="number" min="0" step="0.1" placeholder="e.g. 8" /></label>
+              </div>
+              <label><span>Describe the goods <small>(required for general goods)</small></span><input name="goodsDetail" placeholder="e.g. 400 cartons of antibiotics, keep below 8°C" /></label>
+
+              <div class="fieldset-title">Truck, route &amp; duration</div>
+              <label>Truck *<select name="truck" id="truck"></select></label>
+              <div class="row">
+                <label>From (Point A) *<select name="from" id="from"></select></label>
+                <label>To (Point B) *<select name="to" id="to"></select></label>
+              </div>
+              <div class="row-3">
+                <label>Distance (km) *<input name="km" id="km" type="number" min="1" inputmode="numeric" placeholder="Auto" /></label>
+                <label>Start date *<input name="start" id="start" type="date" /></label>
+                <label>Lease duration (days) *<input name="days" id="days" type="number" min="1" max="365" value="2" inputmode="numeric" /></label>
+              </div>
+              <button class="btn btn-primary" type="submit">Book truck &amp; get tracking ID <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button>
+              <p class="form-status" role="status" aria-live="polite"></p>
+            </form>
+          </div>
+
+          <aside class="panel quote" aria-live="polite">
+            <h2>Your quote</h2>
+            <div class="chosen" id="q-truck"></div>
+            <ul class="qrows">
+              <li><span id="q-lease-l">Truck lease</span><span id="q-lease">₦0</span></li>
+              <li><span id="q-dist-l">Distance</span><span id="q-dist">₦0</span></li>
+              <li><span id="q-hand-l">Goods handling</span><span id="q-hand">₦0</span></li>
+              <li><span>Insurance (2%)</span><span id="q-ins">₦0</span></li>
+              <li><span>Service fee (5%)</span><span id="q-fee">₦0</span></li>
+            </ul>
+            <div class="qtotal"><span>Total to pay</span><strong id="q-total">₦0</strong></div>
+            <p class="qnote" id="q-owner"></p>
+            <p class="qnote" id="q-eta"></p>
+            <p class="qnote">Distance is estimated from the two cities and can be adjusted.</p>
+          </aside>
+        </div>
+
+        <div id="confirm" class="panel confirm" hidden>
+          <div class="tick"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+          <h2>Truck booked!</h2>
+          <p class="muted">Keep this tracking ID to follow your goods from Point A to Point B.</p>
+          <div class="tid" id="c-id"></div>
+          <div><button class="btn btn-light btn-sm" id="c-copy" type="button">Copy tracking ID</button></div>
+          <div class="summary" id="c-summary"></div>
+          <div class="hero-ctas"><a class="btn btn-primary" id="c-track" href="/track">Track this shipment <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a><a class="btn btn-light" href="/lease">Book another truck</a></div>
+          <p class="qnote">Concept site: bookings are saved in this browser only and no payment is taken.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <div class="foot-grid">
+        <div>
+          <a href="/" class="logo" aria-label="LogiFlow home"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="#1463ff"/><path d="M8.5 12.5c3.5-4 11.5-4 15 0M8.5 19.5c3.5 4 11.5 4 15 0" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/><circle cx="16" cy="16" r="3.2" fill="#fff"/></svg>LogiFlow</a>
+          <p>The logistics partner network connecting businesses with trusted truck owners — lease trucks, move goods and track every delivery from Point A to Point B.</p>
+        </div>
+        <div><h4>Shippers</h4><ul><li><a href="/trucks">Find a truck</a></li><li><a href="/lease">Lease &amp; get a quote</a></li><li><a href="/track">Track a shipment</a></li></ul></div>
+        <div><h4>Truck owners</h4><ul><li><a href="/list-truck">List your truck</a></li><li><a href="/#how">How it works</a></li><li><a href="/#pricing">How pricing works</a></li></ul></div>
+        <div><h4>Goods we move</h4><ul><li><a href="/#goods">Pharmaceuticals</a></li><li><a href="/#goods">Glass &amp; fragile</a></li><li><a href="/#goods">Solar &amp; décor</a></li></ul></div>
+      </div>
+      <div class="foot-bottom">
+        <span>&copy; <span data-year>2026</span> LogiFlow · Logistics Partner Network. A concept product.</span>
+        <span>Designed &amp; built by <a href="https://tobi-portfolio-murex.vercel.app" target="_blank" rel="noopener">Oluwatobi Joel</a></span>
+      </div>
+    </div>
+  </footer>
+  <script src="/data.js" defer></script>
+  <script src="/app.js" defer></script>
+</body>
+</html>
