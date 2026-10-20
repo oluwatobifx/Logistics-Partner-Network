@@ -112,8 +112,69 @@ if (page === 'home') {
   const featured = $('#featured');
   if (featured) featured.innerHTML = LF.allTrucks().filter((t) => t.available).slice(0, 3).map(truckCard).join('');
   const goods = $('#goods-grid');
-  if (goods) goods.innerHTML = LF.GOODS.map((g) => `<div class="goods reveal"><span class="icon">${svg(g.icon)}</span><div>${esc(g.short)}<small>${esc(g.note)}</small></div></div>`).join('');
+  if (goods) goods.innerHTML = LF.GOODS.map((g) => `<button type="button" class="goods reveal" data-goods="${g.id}" aria-haspopup="dialog"><span class="icon">${svg(g.icon)}</span><span>${esc(g.short)}<small>${esc(g.note)}</small></span><span class="go">${svg('arrow')}</span></button>`).join('');
+
+  // Shipment dialog: describe the load, then continue to the lease form
+  const dlg = $('#ship-dialog'), sform = $('#ship-form');
+  if (dlg && sform) {
+    const sStatus = $('.form-status', sform);
+    fillSelect($('#ship-nature'), LF.NATURES.map((n) => [n, n]), { placeholder: 'Select nature' });
+    fillSelect($('#ship-unit'), LF.UNITS.map((u) => [u, u]));
+    fillSelect($('#ship-speed'), LF.SPEEDS.map((x) => [x.id, x.name + (x.surcharge ? ` · +${Math.round(x.surcharge * 100)}%` : '')]));
+    fillSelect($('#ship-from'), cityOptions(), { placeholder: 'Pickup city' });
+    fillSelect($('#ship-to'), cityOptions(), { placeholder: 'Delivery city' });
+    const defaultNature = { drugs: 'Temperature-controlled', glass: 'Fragile', food: 'Perishable', electronics: 'High value', building: 'Heavy / bulky', solar: 'Fragile' };
+    goods.addEventListener('click', (e) => {
+      const b = e.target.closest('button[data-goods]'); if (!b) return;
+      const g = LF.GOODS.find((x) => x.id === b.dataset.goods);
+      sform.reset(); sStatus.textContent = ''; sStatus.className = 'form-status';
+      $$('.field-err', sform).forEach((el) => el.classList.remove('field-err'));
+      $('#ship-goods').value = g.id;
+      $('#ship-title').textContent = `Ship ${g.short.toLowerCase()}`;
+      $('#ship-note').textContent = g.note + (g.surcharge ? ` · ${Math.round(g.surcharge * 100)}% handling` : '');
+      $('#ship-icon').innerHTML = svg(g.icon);
+      if (defaultNature[g.id]) sform.elements.nature.value = defaultNature[g.id];
+      if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', '');
+      setTimeout(() => sform.elements.detail.focus(), 50);
+    });
+    $('.dlg-close', dlg).addEventListener('click', () => dlg.close());
+    dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
+    sform.addEventListener('submit', (e) => {
+      e.preventDefault();
+      $$('.field-err', sform).forEach((el) => el.classList.remove('field-err'));
+      const d = Object.fromEntries(new FormData(sform));
+      const bad = ['detail', 'nature', 'weight', 'qty', 'speed', 'from', 'to'].filter((k) => !String(d[k] || '').trim() || (['weight', 'qty'].includes(k) && !(Number(d[k]) > 0)));
+      if (d.from && d.to && d.from === d.to) bad.push('to');
+      if (Number(d.weight) > 30) bad.push('weight');
+      bad.forEach((k) => sform.elements[k].classList.add('field-err'));
+      if (bad.length) {
+        sStatus.className = 'form-status err';
+        sStatus.textContent = Number(d.weight) > 30 ? 'Our largest trucks carry 30 tonnes — please split the load or lower the weight.' : (d.from && d.from === d.to ? 'Pickup and delivery cities must be different.' : 'Please complete the highlighted fields.');
+        $('.field-err', sform)?.focus();
+        return;
+      }
+      const q = new URLSearchParams({ goods: d.goods, detail: d.detail.trim(), nature: d.nature, weight: d.weight, qty: d.qty, unit: d.unit, speed: d.speed, from: d.from, to: d.to });
+      if (d.addr.trim()) q.set('addr', d.addr.trim());
+      location.href = '/lease?' + q.toString();
+    });
+  }
 }
+
+// Clear a field's error outline as soon as the visitor edits it
+document.addEventListener('input', (e) => { if (e.target.classList?.contains('field-err')) e.target.classList.remove('field-err'); });
+document.addEventListener('change', (e) => { if (e.target.classList?.contains('field-err')) e.target.classList.remove('field-err'); });
+
+// ---------- Tap / hover cards: tap toggles the highlighted state on touch screens ----------
+$$('.tap-card').forEach((card) => {
+  const toggle = () => {
+    const on = !card.classList.contains('is-on');
+    $$('.tap-card.is-on').forEach((c) => c.classList.remove('is-on'));
+    card.classList.toggle('is-on', on);
+  };
+  card.addEventListener('click', toggle);
+  card.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
+});
+document.addEventListener('click', (e) => { if (!e.target.closest('.tap-card')) $$('.tap-card.is-on').forEach((c) => c.classList.remove('is-on')); });
 
 // Quick-track forms (home hero + anywhere)
 $$('form[data-track]').forEach((f) => f.addEventListener('submit', (e) => {
@@ -149,6 +210,7 @@ if (page === 'lease') {
   const form = $('#lease-form');
   const truckSel = $('#truck'), fromSel = $('#from'), toSel = $('#to'), goodsSel = $('#goods');
   const kmIn = $('#km'), daysIn = $('#days'), weightIn = $('#weight'), startIn = $('#start');
+  const speedSel = $('#speed'), natureSel = $('#nature'), unitSel = $('#unit');
   const status = $('.form-status', form);
 
   const available = LF.allTrucks().filter((t) => t.available);
@@ -156,6 +218,9 @@ if (page === 'lease') {
   fillSelect(fromSel, cityOptions(), { placeholder: 'Pickup city (Point A)' });
   fillSelect(toSel, cityOptions(), { placeholder: 'Destination (Point B)' });
   fillSelect(goodsSel, LF.GOODS.map((g) => [g.id, g.name]), { placeholder: 'Select type of goods' });
+  fillSelect(speedSel, LF.SPEEDS.map((x) => [x.id, x.name + (x.surcharge ? ` · +${Math.round(x.surcharge * 100)}%` : '')]));
+  fillSelect(natureSel, LF.NATURES.map((n) => [n, n]), { placeholder: 'Select nature' });
+  fillSelect(unitSel, LF.UNITS.map((u) => [u, u]));
 
   const today = new Date(); today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
   startIn.min = today.toISOString().slice(0, 10);
@@ -164,19 +229,39 @@ if (page === 'lease') {
   const pre = params.get('truck') && LF.findTruck(params.get('truck'));
   if (pre && pre.available) { truckSel.value = pre.id; fromSel.value = pre.city; }
 
+  // Prefill from the "Goods we move" form on the home page
+  const setIf = (el, v) => { if (el && v != null && v !== '') { el.value = v; } };
+  if (params.get('goods')) {
+    setIf(goodsSel, params.get('goods')); setIf(form.elements.goodsDetail, params.get('detail'));
+    setIf(natureSel, params.get('nature')); setIf(weightIn, params.get('weight'));
+    setIf(form.elements.qty, params.get('qty')); setIf(unitSel, params.get('unit'));
+    setIf(speedSel, params.get('speed')); setIf(fromSel, params.get('from'));
+    setIf(toSel, params.get('to')); setIf(form.elements.addr, params.get('addr'));
+    if (!pre) {
+      // Suggest the cheapest available truck big enough for the load, preferring one based at the pickup city
+      const w = Number(params.get('weight')) || 0;
+      const fits = available.filter((t) => t.capacity >= w).sort((a, b) => (b.city === fromSel.value) - (a.city === fromSel.value) || a.day - b.day);
+      if (fits[0]) truckSel.value = fits[0].id;
+    }
+    const note = document.createElement('p');
+    note.className = 'prefill-note';
+    note.textContent = 'We’ve filled in your goods details and suggested a truck that fits your load. Add your company details to book.';
+    form.prepend(note);
+  }
+
   let kmTouched = false;
   kmIn.addEventListener('input', () => { kmTouched = true; update(); });
   function autoKm() {
     if (fromSel.value && toSel.value && !kmTouched) kmIn.value = LF.distanceKm(fromSel.value, toSel.value) || '';
   }
   [fromSel, toSel].forEach((s) => s.addEventListener('change', () => { kmTouched = false; autoKm(); update(); }));
-  [truckSel, goodsSel, daysIn, weightIn].forEach((s) => s.addEventListener('input', update));
+  [truckSel, goodsSel, daysIn, weightIn, speedSel].forEach((s) => s.addEventListener('input', update));
 
   function update() {
     const t = LF.findTruck(truckSel.value);
     const days = Math.max(0, Number(daysIn.value) || 0);
     const km = Math.max(0, Number(kmIn.value) || 0);
-    const q = LF.quote({ truck: t, days, km, goodsId: goodsSel.value });
+    const q = LF.quote({ truck: t, days, km, goodsId: goodsSel.value, speedId: speedSel.value });
     $('#q-truck').innerHTML = t
       ? `<span class="icon">${svg('truck')}</span><div><b>${esc(t.type)} · ${esc(t.capacity)}t</b><span>${esc(t.owner)} · ${LF.naira(t.day)}/day · ${LF.naira(t.km)}/km</span></div>`
       : `<span class="icon">${svg('truck')}</span><div><b>No truck selected</b><span>Choose a truck to see pricing</span></div>`;
@@ -186,6 +271,8 @@ if (page === 'lease') {
     $('#q-dist-l').textContent = `Distance (${km.toLocaleString()} km)`;
     $('#q-hand').textContent = LF.naira(q.handling);
     $('#q-hand-l').textContent = `Goods handling (${Math.round(q.handlingRate * 100)}%)`;
+    $('#q-speed').textContent = LF.naira(q.speed);
+    $('#q-speed-l').textContent = `Delivery: ${q.speedInfo.short}${q.speedRate ? ` (+${Math.round(q.speedRate * 100)}%)` : ''}`;
     $('#q-ins').textContent = LF.naira(q.insurance);
     $('#q-fee').textContent = LF.naira(q.fee);
     $('#q-total').textContent = LF.naira(q.total);
@@ -220,6 +307,7 @@ if (page === 'lease') {
       id: LF.newTrackingId(), createdAt: Date.now(),
       company: d.company.trim(), email: d.email.trim(), phone: (d.phone || '').trim(), purpose: d.purpose.trim(),
       goodsId: d.goods, goodsDetail: (d.goodsDetail || '').trim(), weight: Number(d.weight) || null,
+      nature: d.nature || '', qty: Number(d.qty) || null, unit: d.unit || '', speed: d.speed || 'standard', addr: (d.addr || '').trim(),
       from: d.from, to: d.to, km, days, start: d.start, truckId: t.id, total: q.total, ownerGets: q.ownerGets,
     };
     LF.saveBooking(booking);
@@ -230,7 +318,9 @@ if (page === 'lease') {
     $('#c-summary').innerHTML = [
       ['Company', booking.company], ['Truck', `${t.type} · ${t.owner}`],
       ['Route', `${booking.from} → ${booking.to} (${km.toLocaleString()} km)`], ['Duration', `${days} day${days === 1 ? '' : 's'} from ${booking.start}`],
-      ['Goods', q.goods.short + (booking.goodsDetail ? ` — ${booking.goodsDetail}` : '')], ['Total to pay', LF.naira(q.total)],
+      ['Goods', q.goods.short + (booking.goodsDetail ? ` — ${booking.goodsDetail}` : '')],
+      ['Load', [booking.qty ? `${booking.qty.toLocaleString()} ${booking.unit}` : '', booking.weight ? `${booking.weight} t` : '', booking.nature].filter(Boolean).join(' · ') || '—'],
+      ['Delivery', q.speedInfo.name + (booking.addr ? ` to ${booking.addr}` : '')], ['Total to pay', LF.naira(q.total)],
     ].map(([k, v]) => `<div>${esc(k)}<b>${esc(v)}</b></div>`).join('');
     $('#c-track').href = '/track?id=' + booking.id;
     $('#c-copy').addEventListener('click', async () => {
@@ -318,6 +408,8 @@ if (page === 'track') {
           <div><span>Company</span><span>${esc(s.company)}</span></div>
           <div><span>Purpose</span><span>${esc(s.purpose || '—')}</span></div>
           <div><span>Goods</span><span>${esc(goods.short)}${s.goodsDetail ? ' — ' + esc(s.goodsDetail) : ''}</span></div>
+          ${s.qty || s.weight || s.nature ? `<div><span>Load</span><span>${esc([s.qty ? `${Number(s.qty).toLocaleString()} ${s.unit || ''}` : '', s.weight ? `${s.weight} t` : '', s.nature].filter(Boolean).join(' · '))}</span></div>` : ''}
+          <div><span>Delivery</span><span>${esc((LF.SPEEDS.find((x) => x.id === s.speed) || LF.SPEEDS[0]).name)}${s.addr ? ' — ' + esc(s.addr) : ''}</span></div>
           <div><span>Truck</span><span>${esc(truck.type || '')} · ${esc(truck.plate || '')}</span></div>
           <div><span>Operated by</span><span>${esc(truck.owner || '—')}</span></div>
           <div><span>Lease duration</span><span>${s.days} day${s.days === 1 ? '' : 's'}</span></div>

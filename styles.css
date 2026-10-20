@@ -119,11 +119,71 @@ p { margin: 0; }
 .card p { margin-top: 8px; color: var(--muted); font-size: 15px; }
 .icon { width: 46px; height: 46px; border-radius: 12px; display: grid; place-items: center; background: var(--blue-soft); flex-shrink: 0; }
 .icon svg { width: 22px; height: 22px; fill: none; stroke: var(--blue); stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
-.step-n { position: absolute; top: 20px; right: 22px; font-family: var(--display); font-weight: 800; font-size: 34px; color: var(--soft); }
+.step-n { position: absolute; top: 18px; right: 22px; font-family: var(--display); font-weight: 800; font-size: 38px; line-height: 1; color: #b7cbf2; transition: color .25s; }
 .goods { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); font-weight: 600; font-size: 15px; color: var(--ink); }
 .goods .icon { width: 38px; height: 38px; border-radius: 10px; }
 .goods .icon svg { width: 19px; height: 19px; }
 .goods small { display: block; font-weight: 400; font-size: 12.5px; color: var(--muted); }
+
+/* ---------- Interactive cards (hover / tap) ---------- */
+.tap-card { cursor: pointer; transition: background .3s ease, border-color .3s ease, transform .3s ease, box-shadow .3s ease; -webkit-tap-highlight-color: transparent; }
+.tap-card h3, .tap-card p, .tap-card .icon, .tap-card .icon svg { transition: color .3s, background .3s, stroke .3s; }
+.tap-card:hover, .tap-card:focus-visible, .tap-card.is-on {
+  background: linear-gradient(160deg, #1463ff, #0b3fb0); border-color: transparent; transform: translateY(-4px);
+  box-shadow: 0 24px 44px -22px rgba(20,99,255,.75); outline: none;
+}
+.tap-card:hover h3, .tap-card:focus-visible h3, .tap-card.is-on h3 { color: #fff; }
+.tap-card:hover p, .tap-card:focus-visible p, .tap-card.is-on p { color: rgba(255,255,255,.88); }
+.tap-card:hover .icon, .tap-card:focus-visible .icon, .tap-card.is-on .icon { background: rgba(255,255,255,.16); }
+.tap-card:hover .icon svg, .tap-card:focus-visible .icon svg, .tap-card.is-on .icon svg { stroke: #fff; }
+.tap-card:hover .step-n, .tap-card:focus-visible .step-n, .tap-card.is-on .step-n { color: rgba(255,255,255,.45); }
+.step-card .more { max-height: 0; opacity: 0; overflow: hidden; margin-top: 0; padding-top: 0; border-top: 1px solid transparent; transition: max-height .35s ease, opacity .3s ease, margin .3s ease, padding .3s ease; }
+.step-card:hover .more, .step-card:focus-visible .more, .step-card.is-on .more { max-height: 120px; opacity: 1; margin-top: 12px; padding-top: 12px; border-top-color: rgba(255,255,255,.25); color: #fff; font-weight: 500; }
+
+/* Goods cards are buttons that open the shipment form */
+button.goods { width: 100%; text-align: left; font: inherit; font-weight: 600; cursor: pointer; transition: border-color .2s, box-shadow .2s, transform .2s, background .2s; }
+button.goods:hover, button.goods:focus-visible { border-color: var(--blue); box-shadow: 0 14px 30px -18px rgba(20,99,255,.6); transform: translateY(-2px); outline: none; }
+button.goods:active { background: var(--blue-soft); }
+button.goods .go { margin-left: auto; flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--soft); color: var(--blue); transition: background .2s, color .2s; }
+button.goods .go svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+button.goods:hover .go, button.goods:focus-visible .go { background: var(--blue); color: #fff; }
+.goods-hint { margin-top: 18px; text-align: center; font-size: 14.5px; color: var(--muted); }
+
+/* Shipment dialog */
+.ship-dialog { width: min(620px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); padding: 0; border: 0; border-radius: 18px; background: var(--surface); color: var(--text); box-shadow: 0 40px 80px -30px rgba(11,22,48,.5); overflow: auto; }
+.ship-dialog::backdrop { background: rgba(11,22,48,.55); backdrop-filter: blur(3px); }
+.ship-dialog .form { padding: clamp(18px, 4vw, 28px); }
+.dlg-head { display: flex; align-items: flex-start; gap: 12px; }
+.dlg-head h2 { font-size: 22px; }
+.dlg-head p { font-size: 14px; margin-top: 4px; }
+.dlg-close { margin-left: auto; flex-shrink: 0; width: 40px; height: 40px; border: 1px solid var(--line-2); border-radius: 10px; background: var(--surface); font-size: 22px; line-height: 1; cursor: pointer; color: var(--ink); }
+.dlg-close:hover { border-color: var(--blue); color: var(--blue); }
+.prefill-note { padding: 12px 14px; border-radius: 10px; background: var(--blue-soft); color: var(--blue-2); font-size: 14px; }
+
+/* ---------- Hero animation ---------- */
+.hero-scene .anim { position: absolute; inset: 0; width: 100%; height: 100%; }
+.anim .scene { opacity: 0; animation: sceneFade 15s infinite; }
+.anim .s1 { opacity: 1; animation-name: scene1; }
+.anim .s2 { animation-name: scene2; }
+.anim .s3 { animation-name: scene3; }
+@keyframes scene1 { 0%, 30% { opacity: 1 } 34%, 96% { opacity: 0 } 100% { opacity: 1 } }
+@keyframes scene2 { 0%, 30% { opacity: 0 } 34%, 63% { opacity: 1 } 67%, 100% { opacity: 0 } }
+@keyframes scene3 { 0%, 63% { opacity: 0 } 67%, 96% { opacity: 1 } 100% { opacity: 0 } }
+.anim .wheel { transform-box: fill-box; transform-origin: center; animation: spin .6s linear infinite; }
+.anim .dash { animation: road .5s linear infinite; }
+.anim .truck-side { animation: bounce .45s ease-in-out infinite alternate; }
+.anim .clouds { animation: drift 15s linear infinite; }
+.anim .skyline { animation: drift 7s linear infinite; }
+.anim .truck-ab { animation: ab 15s ease-in-out infinite; }
+.anim .truck-net { animation: net 15s ease-in-out infinite; }
+.anim .ping { transform-box: fill-box; transform-origin: center; animation: ping 1.2s ease-out infinite; }
+@keyframes spin { to { transform: rotate(360deg) } }
+@keyframes road { to { stroke-dashoffset: -70 } }
+@keyframes bounce { from { transform: translateY(0) } to { transform: translateY(-2px) } }
+@keyframes drift { to { transform: translateX(-200px) } }
+@keyframes ab { 0%, 34% { transform: translate(140px, 202px) } 60%, 100% { transform: translate(300px, 202px) } }
+@keyframes net { 0%, 67% { transform: translate(-60px, 210px) } 82% { transform: translate(300px, 210px) } 96%, 100% { transform: translate(470px, 210px) } }
+@keyframes ping { 0% { transform: scale(.6); opacity: 1 } 100% { transform: scale(2.2); opacity: 0 } }
 
 /* ---------- Truck cards ---------- */
 .truck-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }

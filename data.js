@@ -29,6 +29,16 @@ const LF = (() => {
     { id: 'general', name: 'General goods', short: 'General goods', surcharge: 0, note: 'Anything else (please describe)', icon: 'box' },
   ];
 
+  // How fast the goods must arrive (surcharge on lease + distance)
+  const SPEEDS = [
+    { id: 'standard', name: 'Standard (3–5 days)', short: 'Standard', surcharge: 0 },
+    { id: 'express', name: 'Express (1–2 days)', short: 'Express', surcharge: 0.15 },
+    { id: 'sameday', name: 'Same day (urgent)', short: 'Same day', surcharge: 0.35 },
+  ];
+  // Nature of the goods (tells the driver how to handle them)
+  const NATURES = ['Standard / dry', 'Fragile', 'Perishable', 'Temperature-controlled', 'Hazardous / flammable', 'Heavy / bulky', 'High value'];
+  const UNITS = ['cartons', 'pallets', 'pieces', 'bags', 'crates', 'drums', 'rolls'];
+
   const TRUCK_TYPES = ['Box truck', 'Flatbed', 'Refrigerated', 'Curtain-side', 'Tipper', 'Container (40ft)'];
 
   const SEED_TRUCKS = [
@@ -70,17 +80,19 @@ const LF = (() => {
   }
 
   // ---------- price quote ----------
-  function quote({ truck, days, km, goodsId }) {
+  function quote({ truck, days, km, goodsId, speedId }) {
     const g = GOODS.find((x) => x.id === goodsId) || GOODS[GOODS.length - 1];
+    const sp = SPEEDS.find((x) => x.id === speedId) || SPEEDS[0];
     const lease = truck ? truck.day * days : 0;
     const distance = truck ? truck.km * km : 0;
     const base = lease + distance;
     const handling = Math.round(base * g.surcharge);
-    const insurance = Math.round((base + handling) * INSURANCE);
-    const fee = Math.round((base + handling + insurance) * SERVICE_FEE);
-    const total = base + handling + insurance + fee;
-    const ownerGets = base + handling; // paid to the truck-owning company
-    return { lease, distance, handling, handlingRate: g.surcharge, insurance, fee, total, ownerGets, goods: g };
+    const speed = Math.round(base * sp.surcharge);
+    const insurance = Math.round((base + handling + speed) * INSURANCE);
+    const fee = Math.round((base + handling + speed + insurance) * SERVICE_FEE);
+    const total = base + handling + speed + insurance + fee;
+    const ownerGets = base + handling + speed; // paid to the truck-owning company
+    return { lease, distance, handling, handlingRate: g.surcharge, speed, speedRate: sp.surcharge, speedInfo: sp, insurance, fee, total, ownerGets, goods: g };
   }
 
   const naira = (n) => '₦' + Math.round(n).toLocaleString('en-NG');
@@ -100,10 +112,10 @@ const LF = (() => {
 
   // Demo shipments so anyone can try tracking.
   const DEMO = [
-    { id: 'LPN-7Q4K2D', company: 'MedPlus Pharma Wholesale', goodsId: 'drugs', goodsDetail: 'Vaccines & antibiotics (cold chain)', from: 'Lagos', to: 'Abuja', truckId: 'T-101', days: 3, progress: 0.62, purpose: 'Restocking northern distribution hub' },
-    { id: 'LPN-3HZ8WM', company: 'BrightHome Glassworks', goodsId: 'glass', goodsDetail: 'Tempered glass sheets', from: 'Onitsha', to: 'Port Harcourt', truckId: 'T-107', days: 2, progress: 0.18, purpose: 'Delivery to construction site' },
-    { id: 'LPN-9SUN5R', company: 'SunPower Energy NG', goodsId: 'solar', goodsDetail: '120 solar panels + 8 inverters', from: 'Kano', to: 'Maiduguri', truckId: 'T-102', days: 4, progress: 1, purpose: 'Rural electrification project' },
-    { id: 'LPN-D3C0R8', company: 'Elegance Events & Décor', goodsId: 'decor', goodsDetail: 'Wedding stage décor & lighting', from: 'Ibadan', to: 'Lagos', truckId: 'T-106', days: 1, progress: 0, purpose: 'Event setup' },
+    { id: 'LPN-7Q4K2D', company: 'MedPlus Pharma Wholesale', goodsId: 'drugs', goodsDetail: 'Vaccines & antibiotics (cold chain)', nature: 'Temperature-controlled', qty: 420, unit: 'cartons', weight: 6, speed: 'express', addr: 'Central Medical Stores, Garki', from: 'Lagos', to: 'Abuja', truckId: 'T-101', days: 3, progress: 0.62, purpose: 'Restocking northern distribution hub' },
+    { id: 'LPN-3HZ8WM', company: 'BrightHome Glassworks', goodsId: 'glass', goodsDetail: 'Tempered glass sheets', nature: 'Fragile', qty: 60, unit: 'crates', weight: 9, speed: 'standard', from: 'Onitsha', to: 'Port Harcourt', truckId: 'T-107', days: 2, progress: 0.18, purpose: 'Delivery to construction site' },
+    { id: 'LPN-9SUN5R', company: 'SunPower Energy NG', goodsId: 'solar', goodsDetail: '120 solar panels + 8 inverters', nature: 'Fragile', qty: 128, unit: 'pieces', weight: 4, speed: 'standard', from: 'Kano', to: 'Maiduguri', truckId: 'T-102', days: 4, progress: 1, purpose: 'Rural electrification project' },
+    { id: 'LPN-D3C0R8', company: 'Elegance Events & Décor', goodsId: 'decor', goodsDetail: 'Wedding stage décor & lighting', nature: 'Fragile', qty: 35, unit: 'crates', weight: 3, speed: 'sameday', from: 'Ibadan', to: 'Lagos', truckId: 'T-106', days: 1, progress: 0, purpose: 'Event setup' },
   ];
 
   function findShipment(rawId) {
@@ -120,9 +132,9 @@ const LF = (() => {
     if (!d) return null;
     const truck = findTruck(d.truckId);
     const km = distanceKm(d.from, d.to);
-    const q = quote({ truck, days: d.days, km, goodsId: d.goodsId });
+    const q = quote({ truck, days: d.days, km, goodsId: d.goodsId, speedId: d.speed });
     return { ...d, km, total: q.total, createdAt: Date.now() - 864e5, demo: true };
   }
 
-  return { CITIES, GOODS, TRUCK_TYPES, allTrucks, findTruck, addTruck, distanceKm, quote, naira, hoursFor, newTrackingId, saveBooking, myBookings, findShipment, DEMO };
+  return { CITIES, GOODS, SPEEDS, NATURES, UNITS, TRUCK_TYPES, allTrucks, findTruck, addTruck, distanceKm, quote, naira, hoursFor, newTrackingId, saveBooking, myBookings, findShipment, DEMO };
 })();
