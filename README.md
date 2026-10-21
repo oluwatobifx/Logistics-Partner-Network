@@ -1,6 +1,6 @@
-# Logistics Partner Network (LogiFlow)
+# Logistics Partner Network (Logistics Partner Network)
 
-A concept website for **LogiFlow**, a logistics partner network that connects companies with trusted truck owners.
+A concept website for **Logistics Partner Network**, a logistics partner network that connects companies with trusted truck owners.
 
 Designed and built by [Oluwatobi Joel](https://tobi-portfolio-murex.vercel.app).
 

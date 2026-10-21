@@ -1,5 +1,5 @@
 // =============================================================
-//  LogiFlow — page scripts (uses LF from data.js)
+//  Logistics Partner Network — page scripts (uses LF from data.js)
 // =============================================================
 document.documentElement.classList.remove('no-js');
 const $ = (s, el = document) => el.querySelector(s);
@@ -28,16 +28,16 @@ function truckArt(type) {
   const fridge = type === 'Refrigerated';
   const flat = type === 'Flatbed' || type === 'Tipper';
   const body = flat
-    ? `<rect x="8" y="58" width="150" height="10" rx="2" fill="#c7d4ea"/>${type === 'Tipper' ? '<path d="M14 58 L30 28 H150 L156 58 Z" fill="#dbe5f5" stroke="#b6c6e2"/>' : '<rect x="20" y="40" width="40" height="18" rx="2" fill="#e8eef9" stroke="#c3d1e8"/><rect x="64" y="34" width="50" height="24" rx="2" fill="#e8eef9" stroke="#c3d1e8"/>'}`
-    : `<rect x="8" y="14" width="150" height="54" rx="4" fill="#f7f9fd" stroke="#c9d6eb"/><rect x="8" y="14" width="150" height="10" rx="4" fill="#1463ff"/>${fridge ? '<rect x="16" y="30" width="22" height="16" rx="3" fill="#dbe7ff"/><path d="M27 33v10M22 38h10" stroke="#1463ff" stroke-width="2"/>' : ''}`;
+    ? `<rect x="8" y="58" width="150" height="10" rx="2" fill="#3a4350"/>${type === 'Tipper' ? '<path d="M14 58 L30 28 H150 L156 58 Z" fill="#22303a" stroke="#4a5563"/>' : '<rect x="20" y="40" width="40" height="18" rx="2" fill="#22303a" stroke="#4a5563"/><rect x="64" y="34" width="50" height="24" rx="2" fill="#22303a" stroke="#4a5563"/>'}`
+    : `<rect x="8" y="14" width="150" height="54" rx="4" fill="#1a222c" stroke="#3a4350"/><rect x="8" y="14" width="150" height="10" rx="4" fill="#D4AF37"/>${fridge ? '<rect x="16" y="30" width="22" height="16" rx="3" fill="#0F5D4E"/><path d="M27 33v10M22 38h10" stroke="#F5EEDC" stroke-width="2"/>' : ''}`;
   return `<svg viewBox="0 0 230 96" aria-hidden="true">
-    <ellipse cx="118" cy="90" rx="110" ry="4" fill="#0b1630" opacity=".08"/>
+    <ellipse cx="118" cy="90" rx="110" ry="4" fill="#000" opacity=".45"/>
     ${body}
-    <path d="M162 30h32c6 0 10 3 13 8l12 18v14h-57Z" fill="#1463ff"/>
-    <path d="M170 36h22c3 0 5 1 7 4l7 11h-36Z" fill="#cfe0ff"/>
-    <rect x="160" y="64" width="62" height="6" rx="2" fill="#0f52d6"/>
-    <g fill="#0b1630"><circle cx="38" cy="76" r="11"/><circle cx="66" cy="76" r="11"/><circle cx="188" cy="76" r="11"/></g>
-    <g fill="#c9d3e3"><circle cx="38" cy="76" r="4.5"/><circle cx="66" cy="76" r="4.5"/><circle cx="188" cy="76" r="4.5"/></g>
+    <path d="M162 30h32c6 0 10 3 13 8l12 18v14h-57Z" fill="#0F5D4E"/>
+    <path d="M170 36h22c3 0 5 1 7 4l7 11h-36Z" fill="#b9d8cf"/>
+    <rect x="160" y="64" width="62" height="6" rx="2" fill="#072b24"/>
+    <g fill="#05070a"><circle cx="38" cy="76" r="11"/><circle cx="66" cy="76" r="11"/><circle cx="188" cy="76" r="11"/></g>
+    <g fill="#D4AF37"><circle cx="38" cy="76" r="4.5"/><circle cx="66" cy="76" r="4.5"/><circle cx="188" cy="76" r="4.5"/></g>
   </svg>`;
 }
 
@@ -78,7 +78,7 @@ function truckCard(t) {
     </div>
     <div class="tcard-body">
       <h3>${esc(t.type)} · ${esc(t.capacity)}t</h3>
-      <div class="owner"><svg class="verified" viewBox="0 0 24 24" fill="#1463ff" aria-hidden="true"><path d="M12 2 9.5 4.5 6 4l-.5 3.5L2.5 10 4 13l-1 3.5 3.5 1L8 21l3-1.5 3 1.5 1.5-3.5 3.5-1L20 13l1.5-3-3-2.5L18 4l-3.5.5L12 2Z"/><path d="m8.5 12 2.3 2.3 4.7-4.6" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>${esc(t.owner)}</div>
+      <div class="owner"><svg class="verified" viewBox="0 0 24 24" fill="#D4AF37" aria-hidden="true"><path d="M12 2 9.5 4.5 6 4l-.5 3.5L2.5 10 4 13l-1 3.5 3.5 1L8 21l3-1.5 3 1.5 1.5-3.5 3.5-1L20 13l1.5-3-3-2.5L18 4l-3.5.5L12 2Z"/><path d="m8.5 12 2.3 2.3 4.7-4.6" stroke="#0B0F14" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>${esc(t.owner)}</div>
       <div class="specs">
         <div>Base<b>${esc(t.city)}</b></div>
         <div>Model<b>${esc(t.model || '—')}</b></div>
@@ -365,8 +365,8 @@ if (page === 'track') {
       if (near(x, y)) return '';
       const left = name === 'Port Harcourt' || name === 'Benin City';
       const label = !quiet.includes(name)
-        ? `<text x="${(x + (left ? -6 : 6)).toFixed(1)}" y="${(y + 4).toFixed(1)}" text-anchor="${left ? 'end' : 'start'}" font-size="11" fill="#8a98b0">${esc(name)}</text>` : '';
-      return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="#b7c5dc"/>${label}`;
+        ? `<text x="${(x + (left ? -6 : 6)).toFixed(1)}" y="${(y + 4).toFixed(1)}" text-anchor="${left ? 'end' : 'start'}" font-size="11" fill="#8b8676">${esc(name)}</text>` : '';
+      return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="#4a5563"/>${label}`;
     }).join('');
     const steps = [
       ['Booked', `Tracking ID issued to ${s.company}`],
@@ -379,19 +379,19 @@ if (page === 'track') {
         <div class="map-head"><h2>${esc(s.id)}</h2><span class="status-pill ${pill[0]}"><i></i>${pill[1]}</span></div>
         <div class="map">
           <svg viewBox="0 0 600 370" role="img" aria-label="Route from ${esc(s.from)} to ${esc(s.to)}">
-            <defs><pattern id="gridp" width="30" height="30" patternUnits="userSpaceOnUse"><path d="M30 0H0V30" fill="none" stroke="#e3ebf7" stroke-width="1"/></pattern></defs>
+            <defs><pattern id="gridp" width="30" height="30" patternUnits="userSpaceOnUse"><path d="M30 0H0V30" fill="none" stroke="#172029" stroke-width="1"/></pattern></defs>
             <rect width="600" height="370" fill="url(#gridp)"/>
             ${cityDots}
-            <line x1="${ax}" y1="${ay}" x2="${bx}" y2="${by}" stroke="#c4d3ee" stroke-width="5" stroke-linecap="round"/>
-            <line x1="${ax}" y1="${ay}" x2="${tx}" y2="${ty}" stroke="#1463ff" stroke-width="5" stroke-linecap="round"/>
-            <circle cx="${ax}" cy="${ay}" r="9" fill="#fff" stroke="#1463ff" stroke-width="4"/>
-            <circle cx="${bx}" cy="${by}" r="9" fill="#fff" stroke="#16a34a" stroke-width="4"/>
-            <text x="${ax}" y="${ay - 16}" text-anchor="middle" font-size="13" font-weight="700" fill="#0b1630">A · ${esc(s.from)}</text>
-            <text x="${bx}" y="${by + 26}" text-anchor="middle" font-size="13" font-weight="700" fill="#0b1630">B · ${esc(s.to)}</text>
+            <line x1="${ax}" y1="${ay}" x2="${bx}" y2="${by}" stroke="#26313c" stroke-width="5" stroke-linecap="round"/>
+            <line x1="${ax}" y1="${ay}" x2="${tx}" y2="${ty}" stroke="#D4AF37" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="${ax}" cy="${ay}" r="9" fill="#0B0F14" stroke="#D4AF37" stroke-width="4"/>
+            <circle cx="${bx}" cy="${by}" r="9" fill="#0B0F14" stroke="#3cc89c" stroke-width="4"/>
+            <text x="${ax}" y="${ay - 16}" text-anchor="middle" font-size="13" font-weight="700" fill="#F5EEDC">A · ${esc(s.from)}</text>
+            <text x="${bx}" y="${by + 26}" text-anchor="middle" font-size="13" font-weight="700" fill="#F5EEDC">B · ${esc(s.to)}</text>
             <g transform="translate(${tx.toFixed(1)} ${ty.toFixed(1)})">
-              <circle r="20" fill="#1463ff" opacity=".15"/>
-              <circle r="13" fill="#1463ff"/>
-              <path d="M-7 -3h7v6h-7zM0 -1h3l3 3v1H0z" fill="#fff"/>
+              <circle r="20" fill="#D4AF37" opacity=".2"/>
+              <circle r="13" fill="#D4AF37"/>
+              <path d="M-7 -3h7v6h-7zM0 -1h3l3 3v1H0z" fill="#0B0F14"/>
             </g>
           </svg>
         </div>

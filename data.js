@@ -1,5 +1,5 @@
 // =============================================================
-//  LogiFlow data & logic
+//  Logistics Partner Network data & logic
 //  - CITIES: places trucks can be picked up / delivered
 //  - GOODS: goods types and their handling surcharge
 //  - SEED_TRUCKS: trucks listed by partner companies
