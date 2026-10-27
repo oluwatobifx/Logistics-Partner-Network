@@ -1,5 +1,5 @@
 // =============================================================
-//  Logistics Partner Network — page scripts (uses LF from data.js)
+//  Logistics Partner Network: page scripts (uses LF from data.js)
 // =============================================================
 document.documentElement.classList.remove('no-js');
 const $ = (s, el = document) => el.querySelector(s);
@@ -81,9 +81,9 @@ function truckCard(t) {
       <div class="owner"><svg class="verified" viewBox="0 0 24 24" fill="#D4AF37" aria-hidden="true"><path d="M12 2 9.5 4.5 6 4l-.5 3.5L2.5 10 4 13l-1 3.5 3.5 1L8 21l3-1.5 3 1.5 1.5-3.5 3.5-1L20 13l1.5-3-3-2.5L18 4l-3.5.5L12 2Z"/><path d="m8.5 12 2.3 2.3 4.7-4.6" stroke="#0B0F14" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>${esc(t.owner)}</div>
       <div class="specs">
         <div>Base<b>${esc(t.city)}</b></div>
-        <div>Model<b>${esc(t.model || '—')}</b></div>
+        <div>Model<b>${esc(t.model || '-')}</b></div>
         <div>Per km<b>${LF.naira(t.km)}</b></div>
-        <div>Plate<b>${esc(t.plate || '—')}</b></div>
+        <div>Plate<b>${esc(t.plate || '-')}</b></div>
       </div>
       <div class="price-row">
         <div><strong>${LF.naira(t.day)}</strong> <small>/ day</small></div>
@@ -149,7 +149,7 @@ if (page === 'home') {
       bad.forEach((k) => sform.elements[k].classList.add('field-err'));
       if (bad.length) {
         sStatus.className = 'form-status err';
-        sStatus.textContent = Number(d.weight) > 30 ? 'Our largest trucks carry 30 tonnes — please split the load or lower the weight.' : (d.from && d.from === d.to ? 'Pickup and delivery cities must be different.' : 'Please complete the highlighted fields.');
+        sStatus.textContent = Number(d.weight) > 30 ? 'Our largest trucks carry 30 tonnes. Please split the load or lower the weight.' : (d.from && d.from === d.to ? 'Pickup and delivery cities must be different.' : 'Please complete the highlighted fields.');
         $('.field-err', sform)?.focus();
         return;
       }
@@ -214,7 +214,7 @@ if (page === 'lease') {
   const status = $('.form-status', form);
 
   const available = LF.allTrucks().filter((t) => t.available);
-  fillSelect(truckSel, available.map((t) => [t.id, `${t.type} · ${t.capacity}t — ${t.owner} (${t.city})`]), { placeholder: 'Choose a truck' });
+  fillSelect(truckSel, available.map((t) => [t.id, `${t.type} · ${t.capacity}t · ${t.owner} (${t.city})`]), { placeholder: 'Choose a truck' });
   fillSelect(fromSel, cityOptions(), { placeholder: 'Pickup city (Point A)' });
   fillSelect(toSel, cityOptions(), { placeholder: 'Destination (Point B)' });
   fillSelect(goodsSel, LF.GOODS.map((g) => [g.id, g.name]), { placeholder: 'Select type of goods' });
@@ -318,8 +318,8 @@ if (page === 'lease') {
     $('#c-summary').innerHTML = [
       ['Company', booking.company], ['Truck', `${t.type} · ${t.owner}`],
       ['Route', `${booking.from} → ${booking.to} (${km.toLocaleString()} km)`], ['Duration', `${days} day${days === 1 ? '' : 's'} from ${booking.start}`],
-      ['Goods', q.goods.short + (booking.goodsDetail ? ` — ${booking.goodsDetail}` : '')],
-      ['Load', [booking.qty ? `${booking.qty.toLocaleString()} ${booking.unit}` : '', booking.weight ? `${booking.weight} t` : '', booking.nature].filter(Boolean).join(' · ') || '—'],
+      ['Goods', q.goods.short + (booking.goodsDetail ? `, ${booking.goodsDetail}` : '')],
+      ['Load', [booking.qty ? `${booking.qty.toLocaleString()} ${booking.unit}` : '', booking.weight ? `${booking.weight} t` : '', booking.nature].filter(Boolean).join(' · ') || '-'],
       ['Delivery', q.speedInfo.name + (booking.addr ? ` to ${booking.addr}` : '')], ['Total to pay', LF.naira(q.total)],
     ].map(([k, v]) => `<div>${esc(k)}<b>${esc(v)}</b></div>`).join('');
     $('#c-track').href = '/track?id=' + booking.id;
@@ -345,7 +345,7 @@ if (page === 'track') {
     const s = LF.findShipment(id);
     if (push) history.replaceState(null, '', '/track?id=' + encodeURIComponent(String(id).trim().toUpperCase()));
     if (!s) {
-      out.innerHTML = `<div class="not-found">No shipment found for <b>${esc(String(id).toUpperCase())}</b>. Check the ID and try again — it looks like <b>LPN-XXXXXX</b>.</div>`;
+      out.innerHTML = `<div class="not-found">No shipment found for <b>${esc(String(id).toUpperCase())}</b>. Check the ID and try again. It looks like <b>LPN-XXXXXX</b>.</div>`;
       return;
     }
     const truck = LF.findTruck(s.truckId) || {};
@@ -406,12 +406,12 @@ if (page === 'track') {
         <ol class="timeline">${steps.map((st, i) => `<li class="${i < stage || stage === 3 ? 'done' : i === stage ? 'now' : ''}"><b>${st[0]}</b>${esc(st[1])}</li>`).join('')}</ol>
         <div class="details">
           <div><span>Company</span><span>${esc(s.company)}</span></div>
-          <div><span>Purpose</span><span>${esc(s.purpose || '—')}</span></div>
-          <div><span>Goods</span><span>${esc(goods.short)}${s.goodsDetail ? ' — ' + esc(s.goodsDetail) : ''}</span></div>
+          <div><span>Purpose</span><span>${esc(s.purpose || '-')}</span></div>
+          <div><span>Goods</span><span>${esc(goods.short)}${s.goodsDetail ? ', ' + esc(s.goodsDetail) : ''}</span></div>
           ${s.qty || s.weight || s.nature ? `<div><span>Load</span><span>${esc([s.qty ? `${Number(s.qty).toLocaleString()} ${s.unit || ''}` : '', s.weight ? `${s.weight} t` : '', s.nature].filter(Boolean).join(' · '))}</span></div>` : ''}
-          <div><span>Delivery</span><span>${esc((LF.SPEEDS.find((x) => x.id === s.speed) || LF.SPEEDS[0]).name)}${s.addr ? ' — ' + esc(s.addr) : ''}</span></div>
+          <div><span>Delivery</span><span>${esc((LF.SPEEDS.find((x) => x.id === s.speed) || LF.SPEEDS[0]).name)}${s.addr ? ', ' + esc(s.addr) : ''}</span></div>
           <div><span>Truck</span><span>${esc(truck.type || '')} · ${esc(truck.plate || '')}</span></div>
-          <div><span>Operated by</span><span>${esc(truck.owner || '—')}</span></div>
+          <div><span>Operated by</span><span>${esc(truck.owner || '-')}</span></div>
           <div><span>Lease duration</span><span>${s.days} day${s.days === 1 ? '' : 's'}</span></div>
           <div><span>Amount</span><span>${LF.naira(s.total)}</span></div>
         </div>
