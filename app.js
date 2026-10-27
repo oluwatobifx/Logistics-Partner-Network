@@ -447,3 +447,21 @@ if (page === 'list') {
 }
 
 reveal();
+
+// ---------- Theme (light / dark / system) ----------
+(() => {
+  const mq = matchMedia('(prefers-color-scheme: dark)');
+  const get = () => { try { return localStorage.getItem('theme') || 'system'; } catch (e) { return 'system'; } };
+  const apply = (pref) => {
+    const dark = pref === 'dark' || (pref === 'system' && mq.matches);
+    document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+    const meta = document.querySelector('meta[name="theme-color"]'); if (meta) meta.content = dark ? '#0B0F14' : '#F8F4EA';
+    document.querySelectorAll('[data-theme-set]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.themeSet === pref)));
+  };
+  apply(get());
+  document.querySelectorAll('[data-theme-set]').forEach((b) => b.addEventListener('click', () => {
+    const p = b.dataset.themeSet; try { localStorage.setItem('theme', p); } catch (e) {}
+    apply(p);
+  }));
+  mq.addEventListener('change', () => { if (get() === 'system') apply('system'); });
+})();
